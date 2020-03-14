@@ -94,18 +94,60 @@ float LinuxParser::MemoryUtilization() {
   return 0.0;
 }
 
-// TODO: Read and return the system uptime
-long LinuxParser::UpTime() { return 0; }
+// DONE: Read and return the system uptime
+long LinuxParser::UpTime() {
+  ifstream uptime_file (kProcDirectory + kUptimeFilename);
+  string line;
+  long uptime = 0;
+  if (uptime_file.is_open()){
+    if (getline(uptime_file, line)){
+      std::replace (line.begin(), line.end(), '.', ' ');
+      istringstream linestream (line);
+      linestream >> uptime;
+      return uptime;
+    }
+  }
+  return uptime;
+}
 
-// TODO: Read and return the number of jiffies for the system
-long LinuxParser::Jiffies() { return 0; }
+// DONE: Read and return the number of jiffies for the system
+long LinuxParser::Jiffies() {
+  vector<string> tick = LinuxParser::CpuUtilization();
+  long jiffies = 0;
+  for (int state = kUser_; state <=kSteal_; state++){
+    jiffies += stol(tick[state]);
+  }
+  return jiffies;
+}
 
-// TODO: Read and return the number of active jiffies for a PID
+// DONE: Read and return the number of active jiffies for a PID
 // REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::ActiveJiffies(int pid[[maybe_unused]]) { return 0; }
+long LinuxParser::ActiveJiffies(int pid) { 
+ifstream process_stat_file (kProcDirectory + to_string(pid) + kStatFilename);
+  string line, str;
+  long active_time = 0;
+  if (process_stat_file.is_open()){
+    if (getline(process_stat_file,line)){
+      istringstream linestream (line);
+      int count = 0;
+      while(linestream >> str){
+        if (count >= 13 && count <= 16){
+          active_time += stol(str);
+        }
+        else if (count >= 17) {
+          break;
+        }
+        count++;
+      }
+    }
+  }
+  return active_time;  
+}//  return 0; }
 
-// TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { return 0; }
+// DONE: Read and return the number of active jiffies for the system
+long LinuxParser::ActiveJiffies() {
+   
+   return 0; }
 
 // TODO: Read and return the number of idle jiffies for the system
 long LinuxParser::IdleJiffies() { return 0; }
