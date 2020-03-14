@@ -11,6 +11,8 @@ using std::stof;
 using std::string;
 using std::to_string;
 using std::vector;
+using std::istringstream;
+using std::ifstream;
 
 // DONE: An example of how to read data from the filesystem
 string LinuxParser::OperatingSystem() {
@@ -68,8 +70,29 @@ vector<int> LinuxParser::Pids() {
   return pids;
 }
 
-// TODO: Read and return the system memory utilization
-float LinuxParser::MemoryUtilization() { return 0.0; }
+// DONE: Read and return the system memory utilization
+float LinuxParser::MemoryUtilization() { 
+  ifstream meminfo_file (kProcDirectory + kMeminfoFilename);
+  string line, key, units;
+  long memory;
+  long mem_total, mem_free;
+  if (meminfo_file.is_open()){
+    while (getline(meminfo_file, line)){
+      istringstream linestream (line);
+      while (linestream >> key >> memory >> units){ 
+        if (key == "MemTotal:"){
+          mem_total = memory;
+        }
+        else if (key == "MemFree:"){
+          mem_free = memory;
+          float x = (1.0 * (mem_total - mem_free)/mem_total);
+          return x;
+        }
+      }
+    }
+  }
+  return 0.0;
+}
 
 // TODO: Read and return the system uptime
 long LinuxParser::UpTime() { return 0; }
